@@ -22,81 +22,85 @@ vector<Matr> answer;
 
 bool dfs(Matr& m) {
     used.insert(m);
-    int current = 1;
-    bool found = true;
-    for (int i = 0; i < SZ; ++i) {
-        for (int j = 0; j < SZ; ++j) {
-            if (m[i][j] != current++) {
-                found = false;
-                break;
-            }
-        }
-        if (!found) break;
-    }
-    if (current == SZ * SZ + 1) {
-        answer.push_back(m);
-        return true;
-    }
 
-    int zi, zj;
-    for (int i = 0; i < SZ; ++i) {
-        for (int j = 0; j < SZ; ++j) {
-            if (m[i][j] == 0) {
-                zi = i;
-                zj = j;
-            }
-        }
-    }
-    if (zi > 0) {
-        swap(m[zi][zj], m[zi - 1][zj]);
-        if (!used.contains(m) && dfs(m)) {
-            swap(m[zi][zj], m[zi - 1][zj]);
-            answer.push_back(m);
-            return true;
-        }
-        swap(m[zi][zj], m[zi - 1][zj]);
-    }
-    if (zj > 0) {
-        swap(m[zi][zj], m[zi][zj - 1]);
-        if (!used.contains(m) && dfs(m)) {
-            swap(m[zi][zj], m[zi][zj - 1]);
-            answer.push_back(m);
-            return true;
-        }
-        swap(m[zi][zj], m[zi][zj - 1]);
-    }
-    if (zi < SZ - 1) {
-        swap(m[zi][zj], m[zi + 1][zj]);
-        if (!used.contains(m) && dfs(m)) {
-            swap(m[zi][zj], m[zi + 1][zj]);
-            answer.push_back(m);
-            return true;
-        }
-        swap(m[zi][zj], m[zi + 1][zj]);
-    }
-    if (zj < SZ - 1) {
-        swap(m[zi][zj], m[zi][zj + 1]);
-        if (!used.contains(m) && dfs(m)) {
-            swap(m[zi][zj], m[zi][zj + 1]);
-            answer.push_back(m);
-            return true;
-        }
-        swap(m[zi][zj], m[zi][zj + 1]);
-    }
     return false;
 }
 
 int main() {
-    Matr m(SZ, vector<int>(SZ));
+    Matr result = {{1, 2, 3}, {4, 5, 6}, {7, 8, 0}};
+    Matr input(SZ, vector<int>(SZ));
     cout << "Введите изначальное расположение пятнашек (вместо пустого места напишите 0):\n";
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
-            cin >> m[i][j];
+            cin >> input[i][j];
         }
     }
-    dfs(m);
+    map<Matr, int> dist;
+    map<Matr, Matr> prev;
+    queue<Matr> q;
+    q.push(input);
+    dist[input] = 0;
+    while (!q.empty()) {
+        Matr m = q.front();
+        if (m == result) break;
+        int zi, zj;
+        for (int i = 0; i < SZ; ++i) {
+            for (int j = 0; j < SZ; ++j) {
+                if (m[i][j] == 0) {
+                    zi = i;
+                    zj = j;
+                }
+            }
+        }
+        if (zi > 0) {
+            swap(m[zi][zj], m[zi - 1][zj]);
+            if (!dist.contains(m)) {
+                dist[m] = dist[q.front()] + 1;
+                prev[m] = q.front();
+                q.push(m);
+            }
+            swap(m[zi][zj], m[zi - 1][zj]);
+        }
+        if (zj > 0) {
+            swap(m[zi][zj], m[zi][zj - 1]);
+            if (!dist.contains(m)) {
+                dist[m] = dist[q.front()] + 1;
+                prev[m] = q.front();
+                q.push(m);
+            }
+            swap(m[zi][zj], m[zi][zj - 1]);
+        }
+        if (zi < SZ - 1) {
+            swap(m[zi][zj], m[zi + 1][zj]);
+            if (!dist.contains(m)) {
+                dist[m] = dist[q.front()] + 1;
+                prev[m] = q.front();
+                q.push(m);
+            }
+            swap(m[zi][zj], m[zi + 1][zj]);
+        }
+        if (zj < SZ - 1) {
+            swap(m[zi][zj], m[zi][zj + 1]);
+            if (!dist.contains(m)) {
+                dist[m] = dist[q.front()] + 1;
+                prev[m] = q.front();
+                q.push(m);
+            }
+            swap(m[zi][zj], m[zi][zj + 1]);
+        }
+        q.pop();
+    }
+    if (!dist.contains(result)) {
+        cout << "Нет решения\n";
+        return 0;
+    }
+    vector<Matr> answer;
+    for (Matr m = result; m != input; m = prev[m]) {
+        answer.push_back(m);
+    }
+    answer.push_back(input);
     reverse(answer.begin(), answer.end());
-    for (const auto& elem: answer) {
-        print_matrix(elem);
+    for (const Matr& m : answer) {
+        print_matrix(m);
     }
 }
